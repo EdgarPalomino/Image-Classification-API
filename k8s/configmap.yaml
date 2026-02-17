@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-api-config
+  namespace: ml-api
+data:
+  APP_NAME: "ML Prediction API"
+  DEBUG: "false"
+  ENABLE_METRICS: "True"
+  MODEL_PATH: "/app/models/yolo11l-cls.onnx"
+  CLASS_NAMES_PATH: "/app/models/imagenet_classes.txt"
+  MODEL_CONFIDENCE_THRESHOLD: "0.25"
+  MAX_PREDICTIONS: "5"

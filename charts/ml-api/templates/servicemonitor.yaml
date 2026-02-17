@@ -1,0 +1,17 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "ml-api.fullname" . }}-monitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Values.serviceMonitor.releaseLabel }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "ml-api.name" . }}
+  endpoints:
+    - port: {{ .Values.service.portName }}
+      path: /metrics
+      interval: {{ .Values.serviceMonitor.interval }}
+{{- end }}

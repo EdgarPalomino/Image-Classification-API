@@ -1,0 +1,150 @@
+/* ===== 全局基础样式 ===== */
+body {
+  background: radial-gradient(circle at top left, #0f172a, #020617) !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+/* Swagger 主容器 */
+.swagger-ui {
+  max-width: 1100px;
+  margin: 0 auto !important;
+  padding-top: 16px;
+}
+
+/* 信息块整体卡片化 */
+.swagger-ui .information-container,
+.swagger-ui .scheme-container,
+.swagger-ui .opblock-tag-section {
+  border-radius: 12px;
+  background-color: #020617 !important;
+  border: 1px solid rgba(55, 65, 81, 0.9) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* ===== 顶部导航条 ===== */
+.swagger-ui .topbar {
+  background: #020617 !important;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.9);
+}
+
+/* 左上角标题 */
+.swagger-ui .topbar .link span {
+  font-weight: 700;
+  font-size: 18px;
+  color: #e5e7eb !important;
+}
+
+/* 隐藏 “Explore” 文本框 */
+.swagger-ui .topbar .download-url-wrapper {
+  display: none !important;
+}
+
+/* ===== API 标题区 ===== */
+.swagger-ui .information-container {
+  margin-bottom: 20px;
+}
+
+/* 大标题（ML Image Classification API） */
+.swagger-ui .information-container .title span {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  color: #f9fafb !important;
+}
+
+/* 隐藏版本号 / OAS 3.1 一堆小字 */
+.swagger-ui .information-container .info .title small,
+.swagger-ui .information-container .info .base-url {
+  display: none !important;
+}
+
+/* 描述文字 */
+.swagger-ui .information-container .description p {
+  color: #9ca3af !important;
+  font-size: 14px;
+}
+
+/* ===== Section 标签（General/Health/Prediction） ===== */
+.swagger-ui .opblock-tag {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #e5e7eb !important;
+  padding: 12px 16px !important;
+  background: #020617 !important;
+  border-radius: 10px 10px 0 0;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.8);
+}
+
+/* Section 外层 */
+.swagger-ui .opblock-tag-section {
+  margin-top: 16px;
+  padding-bottom: 8px;
+}
+
+/* ===== 每个接口块（GET /health, POST /predict 等） ===== */
+.swagger-ui .opblock {
+  border-radius: 10px !important;
+  border: 1px solid rgba(55, 65, 81, 0.9) !important;
+  background-color: #020617 !important;
+}
+
+/* 请求方法按钮（GET/POST 小块） */
+.swagger-ui .opblock-summary-method {
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+}
+
+/* Path 文字颜色 */
+.swagger-ui .opblock-summary-path,
+.swagger-ui .opblock-summary-path__deprecated {
+  color: #e5e7eb !important;
+}
+
+/* ===== 按钮样式 ===== */
+.swagger-ui .btn {
+  border-radius: 999px !important;
+  font-size: 13px;
+}
+
+/* Try it out 按钮 */
+.swagger-ui .btn.try-out__btn {
+  background-color: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+  color: #e5e7eb !important;
+}
+
+/* Execute 按钮 */
+.swagger-ui .btn.execute.opblock-control__btn {
+  background-color: #22c55e !important;
+  border-color: #22c55e !important;
+}
+
+/* Clear 按钮 */
+.swagger-ui .btn.cancel {
+  background-color: transparent !important;
+  border-color: #6b7280 !important;
+  color: #9ca3af !important;
+}
+
+/* ===== 响应区域 ===== */
+.swagger-ui .responses-wrapper {
+  border-radius: 8px !important;
+  border: 1px solid rgba(55, 65, 81, 0.8) !important;
+}
+
+/* 代码块背景 */
+.swagger-ui .microlight {
+  background-color: #020617 !important;
+  border-radius: 8px;
+}
+
+/* ===== 滚动条（可选，Mac 看起来更干净） ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+  border-radius: 999px;
+}

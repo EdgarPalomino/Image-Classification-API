@@ -1,0 +1,18 @@
+{{- if .Values.modelStorage.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ml-api.fullname" . }}-models
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ml-api.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.modelStorage.accessMode | default "ReadOnlyMany" }}
+  resources:
+    requests:
+      storage: {{ .Values.modelStorage.size | default "1Gi" }}
+  {{- if .Values.modelStorage.storageClassName }}
+  storageClassName: {{ .Values.modelStorage.storageClassName }}
+  {{- end }}
+{{- end }}

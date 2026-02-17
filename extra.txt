@@ -1,0 +1,1 @@
+helm upgrade ml-api charts/ml-api -n ml-api --set autoscaling.mode=hpa

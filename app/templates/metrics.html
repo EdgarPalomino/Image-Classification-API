@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>ML API Metrics</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top left, #020617, #020617, #020617);
+            color: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            padding: 32px 24px 40px;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background-color: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background-color: #38bdf8;
+            margin-right: 6px;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+        }
+
+        h1 {
+            margin: 12px 0 6px;
+            font-size: 26px;
+            font-weight: 700;
+            color: #f9fafb;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .grid {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: #020617;
+            border-radius: 14px;
+            padding: 16px 18px 14px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            box-shadow: 0 18px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 6px;
+        }
+
+        .metric-name {
+            font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+            color: #a5b4fc;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: #9ca3af;
+            margin: 0;
+        }
+
+        .link-row {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .link-row a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .link-row a:hover {
+            text-decoration: underline;
+        }
+
+        .note {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(75, 85, 99, 0.9);
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .label-muted {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="badge">
+            <span class="badge-dot"></span>
+            Metrics Overview
+        </div>
+        <h1>ML API Metrics</h1>
+        <p class="subtitle">
+            High-level view of Prometheus metrics exposed by the ML Prediction API.
+        </p>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <div class="label-muted">Traffic &amp; Latency</div>
+            <div class="card-title">HTTP request metrics</div>
+            <div class="metric-name">app_request_count{method, endpoint}</div>
+            <p class="card-desc">
+                Total number of HTTP requests, labeled by HTTP method and endpoint path.
+                Useful for understanding traffic patterns across different API endpoints.
+            </p>
+            <div style="height: 6px;"></div>
+            <div class="metric-name">app_request_latency_seconds{endpoint}</div>
+            <p class="card-desc">
+                Histogram of request latency per endpoint. Can be used to compute
+                p95/p99 latency for the entire API surface.
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="label-muted">Prediction Volume</div>
+            <div class="card-title">Prediction request counters</div>
+            <div class="metric-name">prediction_requests_total{status}</div>
+            <p class="card-desc">
+                Total number of prediction requests labeled by status
+                (<code>success</code> or <code>error</code>).
+                Combined with PromQL, this is used to compute the error rate
+                of the ML model in production.
+            </p>
+            <div style="height: 6px;"></div>
+            <p class="card-desc">
+                Example error rate query:
+                <code>
+                    100 * sum(rate(prediction_requests_total{status="error"}[5m]))
+                    /
+                    sum(rate(prediction_requests_total[5m]))
+                </code>
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="label-muted">Latency Distribution</div>
+            <div class="card-title">Prediction latency histogram</div>
+            <div class="metric-name">prediction_request_latency_seconds_bucket</div>
+            <p class="card-desc">
+                Histogram buckets for end-to-end prediction latency.
+                Used with <code>histogram_quantile</code> to compute p95/p99 latency for
+                the ML prediction path.
+            </p>
+            <div style="height: 6px;"></div>
+            <p class="card-desc">
+                Example p95 latency query (in seconds):
+                <code>
+                    histogram_quantile(
+                        0.95,
+                        sum(rate(prediction_request_latency_seconds_bucket[5m])) by (le)
+                    )
+                </code>
+            </p>
+        </div>
+    </div>
+
+    <div class="link-row">
+        <span class="pill">Next steps</span>
+        <a href="/metrics">Raw Prometheus metrics →</a>
+        <span>·</span>
+        <a href="/docs">Open API docs →</a>
+        <span>·</span>
+        <span>
+            Grafana: use the kube-prometheus-stack datasource to build dashboards
+            for error rate, p95 latency and pod metrics.
+        </span>
+    </div>
+
+    <p class="note">
+        Note: This page is purely for human-friendly documentation.
+        Prometheus still scrapes the raw <code>/metrics</code> endpoint in text format.
+    </p>
+</div>
+</body>
+</html>

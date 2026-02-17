@@ -1,0 +1,47 @@
+{{- if and .Values.hpa.enabled (eq .Values.autoscaling.mode "hpa") }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "ml-api.fullname" . }}-hpa
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ml-api.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "ml-api.fullname" . }}
+  minReplicas: {{ .Values.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.hpa.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.hpa.targetMemoryUtilizationPercentage }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: {{ .Values.hpa.scaleUpStabilizationWindowSeconds | default 0 }}
+      policies:
+        - type: Pods
+          value: {{ .Values.hpa.scaleUpPodsValue | default 4 }}
+          periodSeconds: {{ .Values.hpa.scaleUpPeriodSeconds | default 15 }}
+        - type: Percent
+          value: {{ .Values.hpa.scaleUpPercentValue | default 100 }}
+          periodSeconds: {{ .Values.hpa.scaleUpPeriodSeconds | default 15 }}
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.hpa.scaleDownStabilizationWindowSeconds | default 30 }}
+      policies:
+        - type: Pods
+          value: {{ .Values.hpa.scaleDownPodsValue | default 2 }}
+          periodSeconds: {{ .Values.hpa.scaleDownPeriodSeconds | default 15 }}
+      selectPolicy: Max
+{{- end }}

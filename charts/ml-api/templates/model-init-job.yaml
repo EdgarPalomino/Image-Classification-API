@@ -1,0 +1,36 @@
+{{- if .Values.modelStorage.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ml-api.fullname" . }}-model-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ml-api.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: model-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Copying model files to PVC..."
+              cp -rv /app/models/* /mnt/models/
+              echo "Model files copied successfully!"
+              ls -la /mnt/models/
+          volumeMounts:
+            - name: models
+              mountPath: /mnt/models
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: {{ include "ml-api.fullname" . }}-models
+{{- end }}

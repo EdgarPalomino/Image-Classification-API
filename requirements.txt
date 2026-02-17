@@ -1,0 +1,10 @@
+onnxruntime==1.23.2
+pydantic-settings==2.11.0
+fastapi==0.121.2
+uvicorn==0.38.0
+python-multipart==0.0.20
+prometheus-client==0.21.0
+pillow==10.4.0
+ultralytics==8.3.227
+pytest
+

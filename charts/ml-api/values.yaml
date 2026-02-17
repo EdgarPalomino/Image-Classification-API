@@ -1,0 +1,90 @@
+replicaCount: 2
+
+image:
+  repository: ml-api
+  tag: "v1.0"
+  pullPolicy: IfNotPresent
+
+fullnameOverride: ml-api
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+  portName: http
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"
+
+# Autoscaling toggle: "hpa" or "vpa"
+autoscaling:
+  mode: "hpa"  # Options: "hpa", "vpa"
+
+# HPA Config (used when autoscaling.mode = "hpa")
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 30
+  targetMemoryUtilizationPercentage: 70
+  # Fast scaling behavior
+  scaleUpStabilizationWindowSeconds: 0      # No delay before scaling up
+  scaleUpPodsValue: 6                        # Add up to 6 pods at once
+  scaleUpPeriodSeconds: 10                   # Check every 10 seconds
+  scaleUpPercentValue: 200                   # Or triple pods (200%)
+  scaleDownStabilizationWindowSeconds: 30    # Wait 30s before scaling down
+  scaleDownPodsValue: 4                      # Remove up to 4 pods at once
+  scaleDownPeriodSeconds: 15                 # Check every 15 seconds
+
+# VPA Config (used when autoscaling.mode = "vpa")
+vpa:
+  enabled: true
+  updateMode: "Auto"      # Auto, Recreate, Initial, or Off
+  minCpu: "100m"
+  minMemory: "256Mi"
+  maxCpu: "2"
+  maxMemory: "4Gi"
+
+# Model storage via PVC
+modelStorage:
+  enabled: true
+  size: "1Gi"
+  accessMode: ReadOnlyMany
+  storageClassName: standard
+
+pdb:
+  enabled: false
+  minAvailable: 1   
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  hosts:
+    - host: ml-api.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# ConfigMap, match with configmap.yaml
+config:
+  APP_NAME: "ML Prediction API"
+  DEBUG: "false"
+  ENABLE_METRICS: "True"
+  MODEL_PATH: "/app/models/yolo11l-cls.onnx"
+  CLASS_NAMES_PATH: "/app/models/imagenet_classes.txt"
+  MODEL_CONFIDENCE_THRESHOLD: "0.25"
+  MAX_PREDICTIONS: "5"
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  releaseLabel: monitoring

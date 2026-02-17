@@ -1,0 +1,7 @@
+apiVersion: v2
+name: ml-api
+description: A Helm chart for the ML Prediction API (FastAPI + ONNX + HPA)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+

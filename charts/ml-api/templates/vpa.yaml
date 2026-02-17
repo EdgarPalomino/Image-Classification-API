@@ -1,0 +1,26 @@
+{{- if and .Values.vpa.enabled (eq .Values.autoscaling.mode "vpa") }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ include "ml-api.fullname" . }}-vpa
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ml-api.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "ml-api.fullname" . }}
+  updatePolicy:
+    updateMode: {{ .Values.vpa.updateMode | default "Auto" }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: ml-api
+        minAllowed:
+          cpu: {{ .Values.vpa.minCpu | default "100m" }}
+          memory: {{ .Values.vpa.minMemory | default "256Mi" }}
+        maxAllowed:
+          cpu: {{ .Values.vpa.maxCpu | default "4" }}
+          memory: {{ .Values.vpa.maxMemory | default "8Gi" }}
+        controlledResources: ["cpu", "memory"]
+{{- end }}

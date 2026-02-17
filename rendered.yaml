@@ -1,0 +1,220 @@
+---
+# Source: ml-api/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-api-config
+  namespace: ml-api
+data:
+  APP_NAME: "ML Prediction API"
+  CLASS_NAMES_PATH: "/app/models/imagenet_classes.txt"
+  DEBUG: "false"
+  ENABLE_METRICS: "True"
+  MAX_PREDICTIONS: "5"
+  MODEL_CONFIDENCE_THRESHOLD: "0.25"
+  MODEL_PATH: "/app/models/yolo11l-cls.onnx"
+---
+# Source: ml-api/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-api
+  namespace: ml-api
+  labels:
+    app.kubernetes.io/name: ml-api
+    helm.sh/chart: ml-api-0.1.0
+    app.kubernetes.io/instance: ml-api
+    app.kubernetes.io/version: 1.0.0
+    app.kubernetes.io/managed-by: Helm
+    app: ml-api
+spec:
+  type: ClusterIP
+  selector:
+    app: ml-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      protocol: TCP
+  sessionAffinity: None
+---
+# Source: ml-api/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-api
+  namespace: ml-api
+  labels:
+    app.kubernetes.io/name: ml-api
+    helm.sh/chart: ml-api-0.1.0
+    app.kubernetes.io/instance: ml-api
+    app.kubernetes.io/version: 1.0.0
+    app.kubernetes.io/managed-by: Helm
+    app: ml-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ml-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ml-api
+        helm.sh/chart: ml-api-0.1.0
+        app.kubernetes.io/instance: ml-api
+        app.kubernetes.io/version: 1.0.0
+        app.kubernetes.io/managed-by: Helm
+        app: ml-api
+    spec:
+      containers:
+        - name: ml-api
+          image: "ml-api:v1.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: ml-api-config
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 12
+---
+# Source: ml-api/templates/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ml-api-hpa
+  namespace: ml-api
+  labels:
+    app.kubernetes.io/name: ml-api
+    helm.sh/chart: ml-api-0.1.0
+    app.kubernetes.io/instance: ml-api
+    app.kubernetes.io/version: 1.0.0
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ml-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+# Source: ml-api/templates/values-dev.yaml
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  releaseLabel: monitoring
+---
+# Source: ml-api/templates/values-prod.yaml
+replicaCount: 3
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+
+hpa:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 75
+
+pdb:
+  enabled: true
+  minAvailable: 2   
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  releaseLabel: monitoring
+---
+# Source: ml-api/templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ml-api-monitor
+  namespace: ml-api
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: ml-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
